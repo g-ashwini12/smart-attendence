@@ -1,33 +1,3 @@
-
-import { NextResponse } from 'next/server';
-import { store, Session } from '@/lib/store';
-
-export async function POST(req: Request) {
-  const { course_code, classroom_id } = await req.json();
-
-  const session: Session = {
-    id: `SES${Date.now()}`,
-    course_code,
-    classroom_id,
-    status: 'open',
-    started_at: new Date().toISOString(),
-    closed_at: null,
-    headcount: null,
-    headcount_source: null,
-    warnings: [],
-  };
-
-  store.saveSession(session);
-  return NextResponse.json(session);
-}
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
-
-  const session = store.getSession(id);
-  if (!session) return NextResponse.json({ error: { code: 'SESSION_NOT_FOUND', message: 'That session could not be found.' } }, { status: 404 });
-
-  return NextResponse.json(session);
-}
+import {NextResponse} from 'next/server';import {store,Session} from '@/lib/store';
+export async function POST(req:Request){const b=await req.json(),course_code=String(b.course_code||'').trim(),classroom_id=String(b.classroom_id||'').trim(),batch_id=String(b.batch_id||'All students'),duration_minutes=Number(b.duration_minutes||60),scheduled_for=b.scheduled_for?String(b.scheduled_for):null;if(!course_code||!classroom_id||!Number.isInteger(duration_minutes)||duration_minutes<1||duration_minutes>600)return NextResponse.json({error:{message:'Enter course, room and duration between 1 and 600 minutes.'}},{status:422});const later=!!scheduled_for&&Date.parse(scheduled_for)>Date.now(),now=new Date().toISOString(),s:Session={id:'SES'+Date.now(),course_code,classroom_id,batch_id,duration_minutes,scheduled_for,professor_name:'Prof. Sharma',status:later?'scheduled':'open',started_at:later?scheduled_for!:now,closed_at:null,headcount:null,headcount_source:null,warnings:[]};store.saveSession(s);return NextResponse.json(s,{status:201})}
+export async function GET(req:Request){const id=new URL(req.url).searchParams.get('id');if(!id)return NextResponse.json(store.getAllSessions().sort((a,b)=>b.started_at.localeCompare(a.started_at)));const s=store.getSession(id);return s?NextResponse.json(s):NextResponse.json({error:{message:'Session not found'}},{status:404})}
