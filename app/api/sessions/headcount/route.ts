@@ -1,24 +1,2 @@
-
-import { NextResponse } from 'next/server';
-import { store, Session } from '@/lib/store';
-
-export async function POST(req: Request) {
-  const { session_id, count, source } = await req.json();
-
-  const session = store.getSession(session_id);
-  if (!session) return NextResponse.json({ error: { code: 'SESSION_NOT_FOUND', message: 'Session not found' } }, { status: 404 });
-  if (session.status !== 'open' && session.status !== 'headcount_recorded') {
-    return NextResponse.json({ error: { code: 'SESSION_NOT_OPEN', message: 'Invalid session state for headcount.' } }, { status: 409 });
-  }
-
-  if (count < 0 || count > 1000 || isNaN(count)) {
-    return NextResponse.json({ error: { code: 'INVALID_HEADCOUNT', message: 'Enter a whole number between 0 and 1000.' } }, { status: 422 });
-  }
-
-  session.headcount = count;
-  session.headcount_source = source;
-  session.status = 'headcount_recorded';
-  store.saveSession(session);
-
-  return NextResponse.json(session);
-}
+import {NextResponse} from 'next/server';import {store} from '@/lib/store';import {VisionService} from '@/lib/vision-service';import {CONFIG} from '@/lib/config';
+export async function POST(req:Request){try{const b=await req.json(),s=store.getSession(b.session_id);if(!s)return NextResponse.json({error:{message:'Session not found'}},{status:404});if(!['open','headcount_recorded'].includes(s.status))return NextResponse.json({error:{message:'Session cannot accept a headcount'}},{status:409});let count:number,source:'camera'|'manual'|'stub'='manual',note='Manual count recorded.';if(b.image){if(b.image.length>CONFIG.MAX_IMAGE_MB*1024*1024*1.4)return NextResponse.json({error:{message:'Image exceeds 5MB'}},{status:413});const out=await VisionService.countPeople(b.image);count=out.count;source=out.source;note=out.note}else{count=Number(b.count);if(!Number.isInteger(count)||count<0||count>CONFIG.MAX_HEADCOUNT)return NextResponse.json({error:{message:'Enter a whole number between 0 and 1000'}},{status:422})}s.headcount=count;s.headcount_source=source;s.status='headcount_recorded';store.saveSession(s);return NextResponse.json({...s,headcount_note:note})}catch(e){const m=e instanceof Error?e.message:'Could not process photo';return NextResponse.json({error:{code:m,message:m==='VISION_NOT_CONFIGURED'?'Vision model is not configured.':'Could not process photo.'}},{status:422})}}

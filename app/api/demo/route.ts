@@ -1,32 +1,3 @@
-
-import { NextResponse } from 'next/server';
-import { store, Student } from '@/lib/store';
-
-export async function POST(req: Request) {
-  const { action } = await req.json();
-
-  if (action === 'load') {
-    store.resetAll();
-    const sampleStudents: Student[] = [
-      { id: 'S001', name: 'Aditi Sharma', roll_no: '25CS001', face_template: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S002', name: 'Rahul Verma', roll_no: '25CS002', face_template: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S003', name: 'Meera Nair', roll_no: '25CS003', face_template: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S004', name: 'Karan Patel', roll_no: '25CS004', face_template: [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.2], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S005', name: 'Sneha Iyer', roll_no: '25CS005', face_template: [0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.2, 0.3], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S006', name: 'Arjun Reddy', roll_no: '25CS006', face_template: [0.6, 0.7, 0.8, 0.9, 0.1, 0.2, 0.3, 0.4], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S007', name: 'Divya Menon', roll_no: '25CS007', face_template: [0.7, 0.8, 0.9, 0.1, 0.2, 0.3, 0.4, 0.5], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S008', name: 'Farhan Ali', roll_no: '25CS008', face_template: [0.8, 0.9, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S009', name: 'Neha Gupta', roll_no: '25CS009', face_template: [0.9, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-      { id: 'S010', name: 'Vikram Rao', roll_no: '25CS010', face_template: [0.1, 0.4, 0.7, 0.1, 0.4, 0.7, 0.1, 0.4], consent_given_at: new Date().toISOString(), created_at: new Date().toISOString() },
-    ];
-    sampleStudents.forEach(s => store.saveStudent(s));
-    return NextResponse.json({ success: true, count: 10 });
-  }
-
-  if (action === 'reset') {
-    store.resetAll();
-    return NextResponse.json({ success: true });
-  }
-
-  return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-}
+import {NextResponse} from 'next/server';import {store,Student,Session} from '@/lib/store';
+export async function POST(req:Request){const b=await req.json();if(b.action==='load'){store.resetAll();const now=new Date().toISOString();const rows:Array<Omit<Student,'face_template'>>=[
+{id:'S001',name:'Aarav Sharma',roll_no:'25CSE001',year:'2nd Year',department:'CSE',section:'A',consent_given_at:now,created_at:now,enrollment_date:now},{id:'S002',name:'Diya Reddy',roll_no:'25CSE002',year:'2nd Year',department:'CSE',section:'A',consent_given_at:now,created_at:now,enrollment_date:now},{id:'S003',name:'Rohan Patil',roll_no:'25CSE003',year:'2nd Year',department:'CSE',section:'A',consent_given_at:now,created_at:now,enrollment_date:now},{id:'S004',name:'Meera Nair',roll_no:'25CSE101',year:'2nd Year',department:'CSE',section:'B',consent_given_at:now,created_at:now,enrollment_date:now},{id:'S005',name:'Kabir Shah',roll_no:'25ECE001',year:'2nd Year',department:'ECE',section:'NA',consent_given_at:now,created_at:now,enrollment_date:now},{id:'S006',name:'Anaya Das',roll_no:'25DSAI001',year:'2nd Year',department:'DSAI',section:'NA',consent_given_at:now,created_at:now,enrollment_date:now}];rows.forEach((s,i)=>store.saveStudent({...s,face_template:Array.from({length:8},(_,j)=>((i*13+j*7)%100)/100)}));const session:Session={id:'SES'+Date.now(),course_code:'CS201 · Data Structures',classroom_id:'R204',batch_id:'2nd Year CSE-A',duration_minutes:60,scheduled_for:null,professor_name:'Prof. Sharma',status:'open',started_at:now,closed_at:null,headcount:null,headcount_source:null,warnings:[]};store.saveSession(session);return NextResponse.json({success:true,count:rows.length,session})}if(b.action==='reset'){store.resetAll();return NextResponse.json({success:true})}return NextResponse.json({error:'Invalid action'},{status:400})}
